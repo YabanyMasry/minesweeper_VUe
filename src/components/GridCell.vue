@@ -45,11 +45,10 @@ export default {
 }
 
 .cell.mine {
-  background-color: #ff4d4d;
+  background-color: #1e1e1e;
 }
-
 .cell.flagged {
-  background-color: #ffd700;
+  background-color: #ff4d4d;
 }
 
 .cell:hover {
