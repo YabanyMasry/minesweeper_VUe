@@ -1,5 +1,5 @@
 <template>
-  <GameBoard :rows="10" :cols="5" :mines="2" />
+  <GameBoard :rows="5" :cols="5" :mines="2" />
 </template>
 
 <script>
