@@ -1,8 +1,12 @@
+'
 <template>
   <div class="game-container">
     <h2>Minesweeper</h2>
     <p>Time: {{ time }} seconds</p>
-    <div class="board" :style="{ gridTemplateColumns: `repeat(${cols}, 40px)` }">
+    <div
+      class="board"
+      :style="{ gridTemplateColumns: `repeat(${cols}, 40px)` }"
+    >
       <Cell
         v-for="(cell, index) in board"
         :key="index"
@@ -12,13 +16,15 @@
         @flag="handleFlag"
       />
     </div>
-    <p v-if="gameOver && !gameWon" class="message">Game Over! Final Score: {{ finalScore }}</p>
+    <p v-if="gameOver && !gameWon" class="message">
+      Game Over! Final Score: {{ finalScore }}
+    </p>
     <p v-if="gameWon" class="message">You Win! Final Score: {{ finalScore }}</p>
   </div>
 </template>
-
 <script>
-import Cell from './GridCell.vue';
+import Cell from "./GridCell.vue";
+import Cookies from "js-cookie";
 
 export default {
   components: { Cell },
@@ -29,47 +35,51 @@ export default {
   },
   data() {
     return {
-      board: [],          // Initialize as an empty board
+      board: [],
       gameOver: false,
       gameWon: false,
-      finalScore: 0,      // Final calculated score
-      time: 0,            // Timer variable
-      timer: null,        // Interval ID for the timer
-      maxTime: 300,       // Maximum time allowance for custom game
-      baseScore: 0,       // Maximum time allowance for custom game
-      firstClick: true,   // Flag to check if it's the first click
+      finalScore: 0,
+      time: 0,
+      timer: null,
+      maxTime: 300,
+      baseScore: 0,
+      firstClick: true,
     };
   },
   created() {
-    this.initEmptyBoard(); // Initialize an empty board
+    this.initEmptyBoard();
     this.calculateMultiplier();
+    this.loadFinalScore(); // Load score from cookies on creation
   },
   beforeUnmount() {
-    clearInterval(this.timer); // Clear timer on component unmount
+    clearInterval(this.timer);
   },
   methods: {
     initEmptyBoard() {
       const totalCells = this.rows * this.cols;
-      this.board = Array(totalCells).fill().map(() => ({
-        isMine: false,
-        isRevealed: false,
-        isFlagged: false,
-        adjacentMines: 0,
-      }));
+      this.board = Array(totalCells)
+        .fill()
+        .map(() => ({
+          isMine: false,
+          isRevealed: false,
+          isFlagged: false,
+          adjacentMines: 0,
+        }));
     },
     initBoard(firstClickIndex) {
       const totalCells = this.rows * this.cols;
-      const board = Array(totalCells).fill().map(() => ({
-        isMine: false,
-        isRevealed: false,
-        isFlagged: false,
-        adjacentMines: 0,
-      }));
+      const board = Array(totalCells)
+        .fill()
+        .map(() => ({
+          isMine: false,
+          isRevealed: false,
+          isFlagged: false,
+          adjacentMines: 0,
+        }));
 
-      // Randomly place mines
       let placedMines = 0;
       const neighbors = this.getNeighbors(firstClickIndex);
-      neighbors.push(firstClickIndex); // Include the first clicked cell itself
+      neighbors.push(firstClickIndex);
 
       while (placedMines < this.mines) {
         const index = Math.floor(Math.random() * totalCells);
@@ -79,47 +89,45 @@ export default {
         }
       }
 
-      // Calculate adjacent mine counts
       for (let i = 0; i < totalCells; i++) {
         if (!board[i].isMine) {
-          board[i].adjacentMines = this.getNeighbors(i)
-            .filter(n => board[n]?.isMine).length;
+          board[i].adjacentMines = this.getNeighbors(i).filter(
+            (n) => board[n]?.isMine
+          ).length;
         }
       }
 
       this.board = board;
     },
     calculateMultiplier() {
-  const area = this.rows * this.cols;
-  const mineDensity = this.mines / area;
+      const area = this.rows * this.cols;
+      const mineDensity = this.mines / area;
 
-  console.log(`Mine Density: ${mineDensity}`); // Log mine density
+      console.log(`Mine Density: ${mineDensity}`); // Log mine density
 
-  this.maxTime = area * 2 * Math.log(1 + mineDensity * 5) + 30;  // Adjusted weight for density
-  console.log(`MaxTime: ${this.maxTime}`); // Log maxTime
+      this.maxTime = area * 2 * Math.log(1 + mineDensity * 5) + 30; // Adjusted weight for density
+      console.log(`MaxTime: ${this.maxTime}`); // Log maxTime
 
-  // Weighting factors
-  const areaWeight = 0.5; // Less weight for area
-  const densityWeight = 2; // Higher weight for density
+      // Weighting factors
+      const areaWeight = 0.5; // Less weight for area
+      const densityWeight = 2; // Higher weight for density
 
-  // Scale area and density contributions
-  const scaledArea = Math.sqrt(area / 110) * areaWeight; // Scaled area factor
-  const scaledDensity = mineDensity * densityWeight; // Scaled density factor
+      // Scale area and density contributions
+      const scaledArea = Math.sqrt(area / 110) * areaWeight; // Scaled area factor
+      const scaledDensity = mineDensity * densityWeight; // Scaled density factor
 
-  console.log(`Scaled Area Factor: ${scaledArea}`); // Log scaled area factor
-  console.log(`Scaled Density Factor: ${scaledDensity}`); // Log scaled density factor
+      console.log(`Scaled Area Factor: ${scaledArea}`); // Log scaled area factor
+      console.log(`Scaled Density Factor: ${scaledDensity}`); // Log scaled density factor
 
-  // Combine area and density to calculate multiplier as a product
-  this.multiplier = scaledArea * scaledDensity * 10;
+      // Combine area and density to calculate multiplier as a product
+      this.multiplier = scaledArea * scaledDensity * 10;
 
-  console.log(`Multiplier: ${this.multiplier}`); // Log final multiplier
+      console.log(`Multiplier: ${this.multiplier}`); // Log final multiplier
 
-  this.baseScore = this.multiplier * 100;
+      this.baseScore = this.multiplier * 100;
 
-  console.log(`Base Score: ${this.baseScore}`);
-},
-
-
+      console.log(`Base Score: ${this.baseScore}`);
+    },
     getNeighbors(index) {
       const neighbors = [];
       const row = Math.floor(index / this.cols);
@@ -141,22 +149,19 @@ export default {
     startTimer() {
       this.timer = setInterval(() => {
         this.time++;
-      }, 1000); // Increment time every second
+      }, 1000);
     },
     handleReveal(index) {
       let cell = this.board[index];
       if (cell.isRevealed || cell.isFlagged || this.gameOver) return;
 
-      // Start the timer when the first cell is revealed
       if (this.time === 0 && !this.timer) {
         this.startTimer();
       }
 
-      // Initialize the board after the first click to ensure the first click is safe
       if (this.firstClick) {
         this.firstClick = false;
         this.initBoard(index);
-        // Re-fetch the cell after initializing the board
         cell = this.board[index];
       }
 
@@ -164,8 +169,8 @@ export default {
 
       if (cell.isMine) {
         this.gameOver = true;
-        clearInterval(this.timer); // Stop the timer if the game is over
-        this.calculateFinalScore(); // Calculate the final score on game over
+        clearInterval(this.timer);
+        this.calculateFinalScore();
         return;
       }
 
@@ -184,30 +189,41 @@ export default {
       this.checkWin();
     },
     checkWin() {
-      const allCellsCorrect = this.board.every(cell =>
-        (cell.isMine && cell.isFlagged) || (!cell.isMine && cell.isRevealed)
+      const allCellsCorrect = this.board.every(
+        (cell) =>
+          (cell.isMine && cell.isFlagged) || (!cell.isMine && cell.isRevealed)
       );
       if (allCellsCorrect) {
         this.gameWon = true;
         this.gameOver = true;
-        clearInterval(this.timer); // Stop the timer on game win
-        this.calculateFinalScore(); // Calculate the final score on win
+        clearInterval(this.timer);
+        this.calculateFinalScore();
       }
     },
     calculateFinalScore() {
       if (this.gameOver && !this.gameWon) {
         this.finalScore = 0;
       } else {
-        const timeBonus = Math.max(0, this.maxTime - this.time); // Ensure no negative scores
+        const timeBonus = Math.max(0, this.maxTime - this.time);
+        this.finalScore = Math.floor(
+          timeBonus * this.multiplier + this.baseScore
+        );
         console.log(`Time Bonus: ${timeBonus}`);
-        // Log time bonus
-        this.finalScore = Math.floor(timeBonus * this.multiplier + this.baseScore);
+      }
+      this.saveFinalScore(); // Save score to cookies after calculation
+    },
+    saveFinalScore() {
+      Cookies.set("minesweeper_score", this.finalScore, { expires: 7 });
+    },
+    loadFinalScore() {
+      const savedScore = Cookies.get("minesweeper_score");
+      if (savedScore) {
+        this.finalScore = parseInt(savedScore, 10);
       }
     },
   },
 };
 </script>
-
 
 <style>
 .game-container {
