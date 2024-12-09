@@ -1,4 +1,6 @@
 <template>
+
+<NavbarComponent /> <!-- Add the Navbar component to the template -->
   <div class="app-container">
     <GameBoard :rows="rows" :cols="cols" :mines="mines" />
   </div>
@@ -8,9 +10,11 @@
 import { ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import GameBoard from "./components/GameBoard.vue";
+import NavbarComponent from "./components/NavBar.vue"; // Import the Navbar component
+
 
 export default {
-  components: { GameBoard },
+  components: { GameBoard, NavbarComponent }, // Add the Navbar component to the components object
   setup() {
     const route = useRoute();
     const rows = ref(parseInt(route.query.rows) || 10);

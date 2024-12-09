@@ -3,6 +3,7 @@
     <header>
       <h1>Game Board</h1>
       <div class="line"></div>
+    </header>
 
       <div class="game-container">
         <p class="timer">Time: {{ time }} seconds</p>
@@ -23,7 +24,9 @@
           {{ finalScore }}
         </p>
       </div>
-    </header>
+
+      <br>
+
 
     <section class="game-rules-section">
       <h2>How to Play</h2>
@@ -292,7 +295,7 @@ export default {
 .main-content {
   flex: 1;
   padding: 3rem;
-  max-width: 1000px;
+  max-width: 1800px;
   margin: 2rem auto;
   background-color: #1e1e1e;
   border: 1px solid #333;
@@ -330,5 +333,10 @@ export default {
   margin: 10px 0 20px;
 }
 
-
+.timer,
+.message {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: var(--highlight-color); /* Highlight color for timer/score */
+}
 </style>
