@@ -1,27 +1,56 @@
-'
 <template>
-  <div class="game-container">
-    <h2>Minesweeper</h2>
-    <p>Time: {{ time }} seconds</p>
-    <div
-      class="board"
-      :style="{ gridTemplateColumns: `repeat(${cols}, 40px)` }"
-    >
-      <Cell
-        v-for="(cell, index) in board"
-        :key="index"
-        :cell="cell"
-        :index="index"
-        @reveal="handleReveal"
-        @flag="handleFlag"
-      />
-    </div>
-    <p v-if="gameOver && !gameWon" class="message">
-      Game Over! Final Score: {{ finalScore }}
-    </p>
-    <p v-if="gameWon" class="message">You Win! Final Score: {{ finalScore }}</p>
+  <div class="main-content">
+    <header>
+      <h1>Game Board</h1>
+      <div class="line"></div>
+
+      <div class="game-container">
+        <p class="timer">Time: {{ time }} seconds</p>
+
+        <div class="board" :style="{ gridTemplateColumns: `repeat(${cols}, 40px)` }">
+          <Cell
+            v-for="(cell, index) in board"
+            :key="index"
+            :cell="cell"
+            :index="index"
+            @reveal="handleReveal"
+            @flag="handleFlag"
+          />
+        </div>
+
+        <p v-if="gameOver" class="message">
+          {{ gameWon ? 'You Win!' : 'Game Over!' }} Final Score:
+          {{ finalScore }}
+        </p>
+      </div>
+    </header>
+
+    <section class="game-rules-section">
+      <h2>How to Play</h2>
+      <div class="line"></div>
+      <ul>
+        <li>
+          Click a square to reveal it. If it's a mine, you lose!
+        </li>
+        <li>
+          Numbers indicate how many mines are adjacent to that square (horizontally, vertically, and diagonally).
+        </li>
+        <li>
+          Right-click (or long-press on mobile) to flag a square you think contains a mine.
+        </li>
+        <li>
+          Clear all non-mine squares to win the game!
+        </li>
+      </ul>
+    </section>
+
+    
+
+
   </div>
 </template>
+
+
 <script>
 import Cell from "./GridCell.vue";
 import Cookies from "js-cookie";
@@ -51,10 +80,24 @@ export default {
     this.calculateMultiplier();
     this.loadFinalScore(); // Load score from cookies on creation
   },
+  watch: {
+    rows: 'resetBoard',
+    cols: 'resetBoard',
+    mines: 'resetBoard',
+  },
   beforeUnmount() {
     clearInterval(this.timer);
   },
   methods: {
+    resetBoard() {
+      this.firstClick = true;
+      this.gameOver = false;
+      this.gameWon = false;
+      this.time = 0;
+      clearInterval(this.timer);
+      this.initEmptyBoard();
+      this.calculateMultiplier();
+    },
     initEmptyBoard() {
       const totalCells = this.rows * this.cols;
       this.board = Array(totalCells)
@@ -170,6 +213,7 @@ export default {
       if (cell.isMine) {
         this.gameOver = true;
         clearInterval(this.timer);
+        this.revealAllMines();
         this.calculateFinalScore();
         return;
       }
@@ -200,6 +244,13 @@ export default {
         this.calculateFinalScore();
       }
     },
+    revealAllMines() {
+      this.board.forEach((cell) => {
+        if (cell.isMine) {
+          cell.isRevealed = true;
+        }
+      });
+    },
     calculateFinalScore() {
       if (this.gameOver && !this.gameWon) {
         this.finalScore = 0;
@@ -225,7 +276,30 @@ export default {
 };
 </script>
 
+
 <style>
+
+:host {
+      display: flex;
+      flex-direction: column;
+      background-color: #121212;
+      color: #e0e0e0;
+      min-height: 100vh;
+      margin: 0;
+      padding: 0;
+    }
+
+.main-content {
+  flex: 1;
+  padding: 3rem;
+  max-width: 1000px;
+  margin: 2rem auto;
+  background-color: #1e1e1e;
+  border: 1px solid #333;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  padding-bottom: 3rem;
+}
+
 .game-container {
   display: flex;
   flex-direction: column;
@@ -248,4 +322,13 @@ export default {
   font-weight: bold;
   font-size: 1.5rem;
 }
+
+.line {
+  width: 100%;
+  height: 1px;
+  background-color: #333;
+  margin: 10px 0 20px;
+}
+
+
 </style>
