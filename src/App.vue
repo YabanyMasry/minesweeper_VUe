@@ -12,7 +12,6 @@ import { useRoute } from 'vue-router';
 import GameBoard from "./components/GameBoard.vue";
 import NavbarComponent from "./components/NavBar.vue"; // Import the Navbar component
 
-
 export default {
   components: { GameBoard, NavbarComponent }, // Add the Navbar component to the components object
   setup() {
@@ -20,6 +19,7 @@ export default {
     const rows = ref(parseInt(route.query.rows) || 10);
     const cols = ref(parseInt(route.query.cols) || 10);
     const mines = ref(parseInt(route.query.mines) || 10);
+    const userId = ref(getCookie('userId')); // Get the userId from the cookie
 
     watch(route, (newRoute) => {
       rows.value = parseInt(newRoute.query.rows) || 10;
@@ -27,7 +27,13 @@ export default {
       mines.value = parseInt(newRoute.query.mines) || 10;
     });
 
-    return { rows, cols, mines };
+    function getCookie(name) {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop().split(';').shift();
+    }
+
+    return { rows, cols, mines, userId };
   },
 };
 </script>

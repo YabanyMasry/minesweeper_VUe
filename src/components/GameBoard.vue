@@ -57,6 +57,7 @@
 <script>
 import Cell from "./GridCell.vue";
 import Cookies from "js-cookie";
+import axios from "axios";
 
 export default {
   components: { Cell },
@@ -265,6 +266,9 @@ export default {
         console.log(`Time Bonus: ${timeBonus}`);
       }
       this.saveFinalScore(); // Save score to cookies after calculation
+      if (this.gameWon) {
+        this.postScore(); // Post score if the game is won
+      }
     },
     saveFinalScore() {
       Cookies.set("minesweeper_score", this.finalScore, { expires: 7 });
@@ -273,6 +277,30 @@ export default {
       const savedScore = Cookies.get("minesweeper_score");
       if (savedScore) {
         this.finalScore = parseInt(savedScore, 10);
+      }
+    },
+    getCookie(name) {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop().split(';').shift();
+    },
+    postScore() {
+      const userId = this.getCookie('userId');
+      const username = this.getCookie('username');
+      if (userId && username) {
+        axios.post('http://localhost:8000/api/scores', {
+          user_id: userId,
+          username: username,
+          score: this.finalScore,
+        })
+        .then(response => {
+          console.log('Score posted successfully:', response.data);
+        })
+        .catch(error => {
+          console.error('Error posting score:', error);
+        });
+      } else {
+        console.error('User ID or username not found in cookies');
       }
     },
   },
